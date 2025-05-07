@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>CRUD Operations</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="p-5">
+    <div class="container">
+        <h2 class="mb-4">CRUD Operations</h2>
+
+        <!-- Add Item Form -->
+        <form id="itemForm" class="mb-4">
+            <a href="create.html" class="btn btn-success mb-3">Create New Item</a>
+        </form>
+
+        <!-- Items Table -->
+        <div class="row mb-3">
+            <div class="col-md-9">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search items by name...">
+            </div>
+            <div class="col-md-3">
+                <select id="pageSizeSelect" class="form-select">
+                    <option value="5">5 per page</option>
+                    <option value="10">10 per page</option>
+                    <option value="20">20 per page</option>
+                </select>
+            </div>
+        </div>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="itemTableBody"></tbody>
+        </table>
+        <div class="d-flex justify-content-between mt-3">
+            <button class="btn btn-secondary" id="prevBtn">Previous</button>
+            <span id="pageInfo" class=""></span>
+            <button class="btn btn-secondary" id="nextBtn">Next</button>
+        </div>
+    </div>
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const pageSizeSelect = document.getElementById('pageSizeSelect');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const pageInfo = document.getElementById('pageInfo');
+        const tableBody = document.getElementById('itemTableBody');
+
+        let currentPage = 1;
+        let limit = parseInt(pageSizeSelect.value);
+        let sortField = 'name';
+        let sortOrder = 'asc';
+
+        async function loadItems() {
+            const search = searchInput.value;
+            const res = await fetch(`/api/items?search=${search}&page=${currentPage}&limit=${limit}&sortField=${sortField}&sortOrder=${sortOrder}`);
+            const data = await res.json();
+
+            tableBody.innerHTML = data.items.map(item => `
+      <tr>
+        <td>${item.name}</td>
+        <td>${item.description || ''}</td>
+        <td>
+          <a href="update.html?id=${item._id}" class="btn btn-sm btn-warning">Edit</a>
+          <a href="delete.html?id=${item._id}" class="btn btn-sm btn-danger">Delete</a>
+        </td>
+      </tr>
+    `).join('');
+
+            pageInfo.textContent = `Page ${data.page} of ${data.totalPages}`;
+            prevBtn.disabled = data.page <= 1;
+            nextBtn.disabled = data.page >= data.totalPages;
+        }
+
+        searchInput.addEventListener('input', () => {
+            currentPage = 1;
+            loadItems();
+        });
+
+        pageSizeSelect.addEventListener('change', () => {
+            limit = parseInt(pageSizeSelect.value);
+            currentPage = 1;
+            loadItems();
+        });
+
+        prevBtn.onclick = () => {
+            if (currentPage > 1) {
+                currentPage--;
+                loadItems();
+            }
+        };
+
+        nextBtn.onclick = () => {
+            currentPage++;
+            loadItems();
+        };
+
+        loadItems();
+    </script>
+
+
+
+</body>
+
+</html>

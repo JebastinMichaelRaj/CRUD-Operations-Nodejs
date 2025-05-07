@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Update Item</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="p-5">
+    <div class="container">
+        <h2 class="mb-4">Update Item</h2>
+        <form id="itemForm">
+            <div class="mb-3">
+                <label for="name" class="form-label">Item Name</label>
+                <input type="text" class="form-control" id="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="description" class="form-label">Description</label>
+                <textarea class="form-control" id="description"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Item</button>
+            <a href="index.html" class="btn btn-secondary">Back</a>
+        </form>
+    </div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const itemId = params.get('id');
+
+        async function loadItem() {
+            const res = await fetch(`/api/items/${itemId}`);
+            const item = await res.json();
+            document.getElementById('name').value = item.name;
+            document.getElementById('description').value = item.description;
+        }
+
+        document.getElementById('itemForm').onsubmit = async function (e) {
+            e.preventDefault();
+            const updatedItem = {
+                name: document.getElementById('name').value,
+                description: document.getElementById('description').value
+            };
+            await fetch(`/api/items/${itemId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedItem)
+            });
+            window.location.href = 'index.html';
+        };
+
+        loadItem();
+    </script>
+</body>
+
+</html>
